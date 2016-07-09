@@ -3,7 +3,7 @@
 exec('sudo pkill --signal SIGQUIT -f piPass.py');
 
 // Start PiPass.
-exec('sudo python /opt/PiPass/piPass.py');
+exec('sudo python /opt/PiPass/piPass.py > /dev/null 2>/dev/null &');
 
 exit(0);
 ?>
