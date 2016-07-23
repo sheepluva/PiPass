@@ -256,8 +256,10 @@ case "$COMMAND" in
         ;;
     backup)
         do_backup_restore || exitcode=1
+        ;;
     restore)
         do_backup_create || exitcode=1
+        ;;
     --help)
         usage
         ;;
