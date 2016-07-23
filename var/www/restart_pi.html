@@ -21,13 +21,13 @@
     <link href="assets/css/style.css" rel="stylesheet">
     <link href="assets/css/style-responsive.css" rel="stylesheet">
 
-    <!-- CALLS RESTART_PI.PHP TO EXECUTE SERVER SIDE COMMANDS -->
+    <!-- CALLS CTL.PHP TO EXECUTE SERVER SIDE COMMANDS -->
     <script>
       function restart()
       {
         var xmlHttp = new XMLHttpRequest();
 
-        xmlHttp.open("POST","assets/php/restart_pi.php",true);
+        xmlHttp.open("POST","assets/php/ctl.php?command=restart",true);
         xmlHttp.send();
       }
     </script>

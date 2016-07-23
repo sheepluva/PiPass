@@ -21,13 +21,13 @@
     <link href="assets/css/style.css" rel="stylesheet">
     <link href="assets/css/style-responsive.css" rel="stylesheet">
 
-    <!-- CALLS STOP.PHP TO EXECUTE SERVER SIDE COMMANDS -->
+    <!-- CALLS CTL.PHP TO EXECUTE SERVER SIDE COMMANDS -->
     <script>
       function stop()
       {
         var xmlHttp = new XMLHttpRequest();
 
-        xmlHttp.open("POST","assets/php/stop.php",true);
+        xmlHttp.open("POST","assets/php/ctl.php?command=stop",true);
         xmlHttp.send();
       }
     </script>

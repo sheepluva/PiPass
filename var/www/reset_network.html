@@ -21,13 +21,13 @@
     <link href="assets/css/style.css" rel="stylesheet">
     <link href="assets/css/style-responsive.css" rel="stylesheet">
 
-    <!-- CALLS RESET_NETWORK.PHP TO EXECUTE SERVER SIDE COMMANDS -->
+    <!-- CALLS CTL.PHP TO EXECUTE SERVER SIDE COMMANDS -->
     <script>
       function reset()
       {
         var xmlHttp = new XMLHttpRequest();
 
-        xmlHttp.open("POST","assets/php/reset_network.php",true);
+        xmlHttp.open("POST","assets/php/ctl.php?command=pi-netreset",true);
         xmlHttp.send();
       }
     </script>

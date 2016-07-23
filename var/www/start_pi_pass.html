@@ -21,13 +21,13 @@
     <link href="assets/css/style.css" rel="stylesheet">
     <link href="assets/css/style-responsive.css" rel="stylesheet">
 
-    <!-- CALLS START.PHP TO EXECUTE SERVER SIDE COMMANDS -->
+    <!-- CALLS CTL.PHP TO EXECUTE SERVER SIDE COMMANDS -->
     <script>
       function start()
       {
         var xmlHttp = new XMLHttpRequest();
 
-        xmlHttp.open("POST","assets/php/start.php",true);
+        xmlHttp.open("POST","assets/php/ctl.php?command=start",true);
         xmlHttp.send();
       }
     </script>

@@ -1,0 +1,217 @@
+#!/bin/sh
+
+usage() {
+    echo "Syntax: $0 COMMAND"
+    echo '
+Service commands:
+    advance     - Advance to the next Nintendo Zone immediatly
+    reload      - Reload settings
+    start       - (Re-)Start PiPass
+    status      - Show current PiPass status
+    stop        - Stop PiPass
+
+System commands:
+    pi-netreset - Resets the system'\''s network configuration and reboots it!
+    pi-reboot   - Restarts the entire system!
+    pi-shutdown - Shuts down the entire system!
+
+Other commands:
+    upgrade     - Upgrades PiPass to the newest version
+    --help      - Shows this help text'
+}
+
+show_error() {
+    MSG='PiPass advance: An error occured.'
+    if [ -n "$1" ]; then
+        MSG="$1"
+    fi
+
+    if [ -n "$PS1" ]; then
+        echo "ERROR: $MSG" >&2
+    else
+        logger -t 'piPass-ctl ERROR' "$MSG"
+    fi
+}
+
+if [ $# -ne 1 ]; then
+    show_error 'Invalid number of arguments.'
+    usage >&2
+    exit 2
+fi
+
+COMMAND="$1"
+if [ -z "$PS1" ]; then
+    logger -t 'piPass-ctl' "COMMAND: $*"
+fi
+
+do_advance() {
+    pkill --signal SIGUSR2 -f piPass.py
+    return $?
+}
+
+do_reload() {
+    pkill --signal SIGUSR1 -f piPass.py
+    return $?
+}
+
+do_stop() {
+    service hostapd stop 2>/dev/null
+    killall hostapd 2>/dev/null
+    sleep 1
+    killall -9 hostapd 2>/dev/null
+    pkill --signal SIGQUIT -f piPass.py
+    return $?
+}
+
+do_start() {
+    # note: original stop only sent SIGQUIT without stopping hostapd
+    do_stop
+    python /opt/PiPass/piPass.py > /dev/null 2>/dev/null &
+    return $?
+}
+
+do_pireboot() {
+    do_stop
+    /sbin/shutdown -r now
+    return $?
+}
+
+do_pinetreset() {
+    do_stop
+    rm /etc/udev/rules.d/70-persistent-net.rules
+    do_pireboot
+    return $?
+}
+
+do_pishutdown() {
+    do_stop
+    /sbin/shutdown -P now
+    return $?
+}
+
+install_upgrade_dependencies() {
+
+    # 7z is a required component for the upgrade process, enforce that dependency.
+    if ! which 7z > /dev/null; then
+        apt-get install p7zip-full -y
+    fi
+    if ! which 7z > /dev/null; then
+        show_error 'Failed to install 7z'
+        return 1
+    fi
+
+    return 0
+}
+
+do_upgrade() {
+
+    do_stop
+
+    install_upgrade_dependencies || return 1
+
+    ZIPDOWNLOADURL="https://github.com/sheepluva/PiPass/archive/master.zip"
+
+    if [ ! -d /tmp/PiPass ]; then
+        mkdir -p /tmp/PiPass || return 1
+    else
+        rm -r /tmp/PiPass/* 2>/dev/null
+    fi
+
+    DESTFILE=/tmp/PiPass/master.zip
+
+    # Download the latest version of PiPass from the master branch.
+    wget -O "$DESTFILE" "$ZIPDOWNLOADURL" || return 1
+
+    if [ ! -f "$DESTFILE" ]; then
+        return 1
+    fi
+
+    # Get the installation path of the PiPass Dashboard.
+    PIPASSWEBROOT="$(sed 's/^.*"\([^"]\+\)".*$/\1/;s#\\/#/#g' /opt/PiPass/config/pipass_dashboard.json)"
+
+    if [ -z "$PIPASSWEBROOT" ] && [  ]; then
+        echo 'Failed to read dashboard location from /opt/PiPass/config/pipass_dashboard.json' >&2
+        return 1
+    fi
+
+    echo "PiPass Dashboard installation path: $PIPASSWEBROOT"
+
+    # Prepare for the upgrade process.
+    7z x /tmp/PiPass/master.zip -o/tmp/PiPass/ -y || return 1
+
+    # Backup the PiPass settings.
+    cp -v /opt/PiPass/config/pipass_dashboard.json /tmp/PiPass/ || return 1
+
+    cp -v "$PIPASSWEBROOT/assets/json/pipass_config.json" /tmp/PiPass/ || return 1
+
+    # Ensure permissions are correct before the upgrading process.
+    chmod -R 700 /tmp/PiPass/
+
+    # Archive, then remove the old version of PiPass.
+    echo 'Creating backup in /root ...'
+    7z a -mx=9 "/root/pipass_backup_$(date +%s).zip" || return 1
+
+    rm -r /opt/PiPass/*
+    rm -r "$PIPASSWEBROOT"*
+
+    # delete old backups
+    echo 'Purging old backups...'
+    find /root -maxdepth 1 -type f -name 'pipass_backup_*.zip' -mtime +30 -delete
+
+    # Upgrade PiPass to the latest version.
+    cp -r /tmp/PiPass/PiPass-master/opt/PiPass/* /opt/PiPass/ || return 1
+    cp -r /tmp/PiPass/PiPass-master/var/www/*  "$PIPASSWEBROOT" || return 1
+    cp /tmp/PiPass/pipass_dashboard.json /opt/PiPass/config/ || return 1
+    cp /tmp/PiPass/pipass_config.json "$PIPASSWEBROOT/assets/json/" || return 1
+
+    # Ensure permissions are correct for after the upgrading process.
+    chmod -R 755 /opt/PiPass/
+    chmod -R 755 "$PIPASSWEBROOT"
+
+    return 0
+}
+
+exitcode=0
+
+case "$COMMAND" in
+    advance)
+        do_advance || exitcode=1
+        ;;
+    status)
+        echo TODO
+        ;;
+    reload)
+        do_reload || exitcode=1
+        ;;
+    start)
+        do_start || exitcode=1
+        ;;
+    stop)
+        do_stop || exitcode=1
+        ;;
+    pi-reboot)
+        do_pireboot || exitcode=1
+        ;;
+    pi-shutdown)
+        do_pishutdown || exitcode=1
+        ;;
+    pi-netreset)
+        do_netreset || exitcode=1
+        ;;
+    upgrade)
+        do_upgrade || exitcode=1
+        # Cleanup the temporary files used in upgrading PiPass.
+        echo 'Cleaning up...'
+        rm -rf /tmp/PiPass/
+        ;;
+    --help)
+        usage
+        ;;
+esac
+
+if [ $exitcode -ne 0 ]; then
+   show_error
+fi
+
+exit $exitcode
+
