@@ -1,3 +1,16 @@
+
+# DO NOT USE THIS
+This fork has severe custom modifications, experimental changes and might not even run at this time.
+
+If you want to use PiPass you probably want to <a href="https://github.com/Matthew-Hsu/PiPass">use the original</a>.
+
+Please be aware that security wasn't much considered in it though.
+
+Intruders can abuse your internet connection, easily reach other devices in the same network and possibly take control over the Raspberry Pi.
+
+
+<!--
+
 # PiPass - Nintendo 3DS Homepass for the Raspberry Pi
 
 ## Table of Contents
@@ -397,3 +410,5 @@ I want to expand the functionality of PiPass by adding the following:
 If you have any problems with PiPass, please let me know through my GitHub. I will do my best to help you out.
 
 <strong><a href="#table-of-contents">[Back to Top]</a></strong>
+
+-->
