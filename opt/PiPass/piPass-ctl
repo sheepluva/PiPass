@@ -17,7 +17,7 @@ System commands:
 
 Other commands:
     backup      - Creates a backup of the current PiPass installation
-    rollback    - Restores a Pipass installation that was previously crated with "backup"
+    restore     - Restores a Pipass installation that was previously crated with "backup"
     update      - Updates PiPass to the newest version
     --help      - Shows this help text'
 }
@@ -251,7 +251,7 @@ case "$COMMAND" in
     update)
         do_update || exitcode=1
         if [ $exitcode -gt 1 ]; then
-            echo 'ERROR: Update failed! Rolling back...'
+            echo 'ERROR: Update failed! Starting rollback...'
             do_backup_restore
         fi
         # Cleanup the temporary files used in upgrading PiPass.
@@ -262,6 +262,7 @@ case "$COMMAND" in
         do_backup_create "$(get_pipasswebroot)" || exitcode=1
         ;;
     restore)
+        do_stop
         do_backup_restore || exitcode=1
         ;;
     --help)
