@@ -137,15 +137,18 @@ if ($_POST)
 
   $acceptedargs = array(
     'STREETPASS_CYCLE_MINUTES',
+    'PIPASS_SHUFFLE',
     'GSX_KEY',
     'GSX_WORKSHEET',
+    'HOSTAPD_SECURITY',
     'HOSTAPD_DRIVER',
-    'DASHBOARD',
+    'DASHBOARD'
   );
 
   // trim 'em all
   foreach ($acceptedargs as &$argkey) {
-    $newconfig[$argkey] = trim($_POST[$argkey]);
+    if (array_key_exists($argkey, $_POST))
+      $newconfig[$argkey] = trim($_POST[$argkey]);
   }
   unset($value);
 
