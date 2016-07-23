@@ -113,7 +113,7 @@ install_update_dependencies() {
 
 set_permissions() {
     local webroot="$1"
-    local webconfig="$2"
+    local webconfig="${1}config"
 
     chmod -R -v 755 /opt/PiPass/
 
@@ -188,7 +188,7 @@ do_update() {
     # Backup the PiPass settings.
     cp -v /opt/PiPass/config/pipass_dashboard.json /tmp/PiPass/ || return 1
 
-    cp -v "$PIPASSWEBROOT/assets/json/pipass_config.json" /tmp/PiPass/ || return 1
+    cp -v "${PIPASSWEBROOT}assets/json/pipass_config.json" /tmp/PiPass/ || return 1
 
     # Ensure permissions are correct before the upgrading process.
     chmod -R 700 /tmp/PiPass/
@@ -218,7 +218,7 @@ do_update() {
     cp -v /tmp/PiPass/pipass_config.json "$WEBCONFIGDIR" || return 2
 
     # Ensure permissions are correct for after the upgrading process.
-    set_permissions "$PIPASSWEBROOT" "$WEBCONFIGDIR" || return 2
+    set_permissions "$PIPASSWEBROOT" || return 2
 
     return 0
 }
