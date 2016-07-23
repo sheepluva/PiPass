@@ -16,7 +16,10 @@ System commands:
     pi-shutdown - Shuts down the entire system!
 
 Other commands:
-    upgrade     - Upgrades PiPass to the newest version
+    backup      - Creates a backup of the current PiPass installation
+    rollback    - Restores a Pipass installation that was previously crated with "backup"
+                  You can provide a backup-zip as argument. If not the latest one is restored.
+    update      - Updates PiPass to the newest version
     --help      - Shows this help text'
 }
 
@@ -89,9 +92,9 @@ do_pishutdown() {
     return $?
 }
 
-install_upgrade_dependencies() {
+install_update_dependencies() {
 
-    # 7z is a required component for the upgrade process, enforce that dependency.
+    # 7z is a required component for the update process, enforce that dependency.
     if ! which 7z > /dev/null; then
         apt-get install p7zip-full -y
     fi
@@ -103,11 +106,48 @@ install_upgrade_dependencies() {
     return 0
 }
 
-do_upgrade() {
+set_permissions() {
+    local webroot="$1"
+    local webconfig="$2"
+
+    chmod -R -v 755 /opt/PiPass/
+
+    if [ -n "$webroot" ]; then
+        chmod -R -v 755 "$webroot"
+    fi
+
+    if [ -n "$webconfig" ]; then
+        chmod -R -v 755 "$webconfig"
+        chown -R -v www-data:www-data "$webconfig"
+    fi
+}
+
+do_backup_create() {
+
+    echo 'Creating backup in /root ...'
+    local bkpfile="pipass_backup_$(date +%s).tar.gz"
+    local webroot="$1"
+
+    tar -czvf "/root/$bkpfile" /opt/PiPass/ "webroot" || return 1
+
+    # symlink the just created backup
+    ln -sf "$bkpfile" /root/pipass_backup_latest.tar.gz
+}
+
+# accepts a backup-file as argument
+do_backup_restore() {
+
+    local bkpfile="/root/pipass_backup_latest.tar.gz"
+
+    tar -xzvf "$bpkfile" --same-owner --directory / || return 1
+}
+
+# exitcode > 1 indicated that a rollback is needed
+do_update() {
 
     do_stop
 
-    install_upgrade_dependencies || return 1
+    install_update_dependencies || return 1
 
     ZIPDOWNLOADURL="https://github.com/sheepluva/PiPass/archive/master.zip"
 
@@ -136,7 +176,7 @@ do_upgrade() {
 
     echo "PiPass Dashboard installation path: $PIPASSWEBROOT"
 
-    # Prepare for the upgrade process.
+    # Prepare for the update process.
     7z x /tmp/PiPass/master.zip -o/tmp/PiPass/ -y || return 1
 
     # Backup the PiPass settings.
@@ -148,25 +188,31 @@ do_upgrade() {
     chmod -R 700 /tmp/PiPass/
 
     # Archive, then remove the old version of PiPass.
-    echo 'Creating backup in /root ...'
-    7z a -mx=9 "/root/pipass_backup_$(date +%s).zip" || return 1
+    do_backup_create "$PIPASSWEBROOT"
 
-    rm -r /opt/PiPass/*
-    rm -r "$PIPASSWEBROOT"*
-
-    # delete old backups
+    # Delete old backups
     echo 'Purging old backups...'
     find /root -maxdepth 1 -type f -name 'pipass_backup_*.zip' -mtime +30 -delete
 
-    # Upgrade PiPass to the latest version.
-    cp -r /tmp/PiPass/PiPass-master/opt/PiPass/* /opt/PiPass/ || return 1
-    cp -r /tmp/PiPass/PiPass-master/var/www/*  "$PIPASSWEBROOT" || return 1
-    cp /tmp/PiPass/pipass_dashboard.json /opt/PiPass/config/ || return 1
-    cp /tmp/PiPass/pipass_config.json "$PIPASSWEBROOT/assets/json/" || return 1
+    # Update PiPass to the latest version.
+    rm -r /opt/PiPass/*
+    cp -r /tmp/PiPass/PiPass-master/opt/PiPass/* /opt/PiPass/ || return 2
+
+    rm -r "$PIPASSWEBROOT"*
+    cp -r /tmp/PiPass/PiPass-master/var/www/*  "$PIPASSWEBROOT" || return 2
+
+    cp /tmp/PiPass/pipass_dashboard.json /opt/PiPass/config/ || return 2
+
+    WEBCONFIGDIR="$PIPASSWEBROOT/config"
+
+    if [ ! -d "$WEBCONFIGDIR" ]; then
+        mkdir -p "$WEBCONFIGDIR" || return 1
+    fi
+
+    cp -v /tmp/PiPass/pipass_config.json "$WEBCONFIGDIR" || return 2
 
     # Ensure permissions are correct for after the upgrading process.
-    chmod -R 755 /opt/PiPass/
-    chmod -R 755 "$PIPASSWEBROOT"
+    set_permissions "$PIPASSWEBROOT" "$WEBCONFIGDIR" || return 2
 
     return 0
 }
@@ -198,12 +244,20 @@ case "$COMMAND" in
     pi-netreset)
         do_netreset || exitcode=1
         ;;
-    upgrade)
-        do_upgrade || exitcode=1
+    update)
+        do_update || exitcode=1
+        if [ $exitcode -gt 1 ]; then
+            echo 'ERROR: Update failed! Rolling back...'
+            do_backup_restore
+        fi
         # Cleanup the temporary files used in upgrading PiPass.
         echo 'Cleaning up...'
         rm -rf /tmp/PiPass/
         ;;
+    backup)
+        do_backup_restore || exitcode=1
+    restore)
+        do_backup_create || exitcode=1
     --help)
         usage
         ;;

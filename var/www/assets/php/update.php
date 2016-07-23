@@ -93,7 +93,7 @@ if (!file_exists('/opt/PiPass/config/pipass_dashboard.json'))
 
 
 // update
-$_GET['command'] = 'upgrade';
+$_GET['command'] = 'update';
 require('ctl.php');
 
 // TODO: check if update was successful
