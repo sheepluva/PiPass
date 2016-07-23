@@ -135,11 +135,19 @@ if ($_POST)
   file_put_contents('/tmp/mac_accept', $newconfig['AUTHENTICATION']);
   exec('sudo cp /tmp/mac_accept /etc/hostapd/mac_accept');
 
-  // Trim leading/trailing whitespaces to help guard against PiPass DB URL errors.
-  $newconfig['GSX_KEY'] = trim($_POST['GSX_KEY']);
+  $acceptedargs = array(
+    'STREETPASS_CYCLE_MINUTES',
+    'GSX_KEY',
+    'GSX_WORKSHEET',
+    'HOSTAPD_DRIVER',
+    'DASHBOARD',
+  );
 
-  // Trim leading/trailing whitespaces to help guard against hostapd errors.
-  $newconfig['HOSTAPD_DRIVER'] = trim($_POST['HOSTAPD_DRIVER']);
+  // trim 'em all
+  foreach ($acceptedargs as $key => &$value) {
+    $newconfig[$key] = trim($value);
+  }
+  unset($value);
 
   // Convert the form data into a JSON format.
   $json = json_encode($newconfig);

@@ -18,6 +18,7 @@ System commands:
 Other commands:
     backup      - Creates a backup of the current PiPass installation
     restore     - Restores a Pipass installation that was previously crated with "backup"
+                  Note: This will also cause your settings to be reverted to the time when the backup was created
     update      - Updates PiPass to the newest version
     --help      - Shows this help text'
 }
@@ -42,6 +43,7 @@ if [ $# -ne 1 ]; then
 fi
 
 COMMAND="$1"
+
 if [ -z "$PS1" ]; then
     logger -t 'piPass-ctl' "COMMAND: $*"
 fi
