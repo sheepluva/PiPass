@@ -26,6 +26,6 @@ if (!in_array($command, $whitelist)) {
     die('Invalid command');
 }
 
-exec("sudo \"$bin\" '$command'");
+exec("sudo -i PS1= \"$bin\" '$command' > /dev/null");
 
 ?>
