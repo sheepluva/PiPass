@@ -75,14 +75,14 @@ def loadDashboard():
 
     return None
 
-# Read and load settings stored in {DASHBOARD}assets/json/pipass_config.json.
+# Read and load settings stored in {DASHBOARD}config/pipass_config.json.
 def loadSettings():
     # Read the settings.
     try:
-        with open(DASHBOARD + 'assets/json/pipass_config.json', 'r') as f:
+        with open(DASHBOARD + 'config/pipass_config.json', 'r') as f:
             pipass_config = json.load(f)
     except IOError:
-        logger.error('Unable to read the file: ' + DASHBOARD + 'assets/json/pipass_config.json.')
+        logger.error('Unable to read the file: ' + DASHBOARD + 'config/pipass_config.json.')
         updateStatus('Not Available', 'Not Available', 'PiPass is not running')
         logger.info('PiPass has been shutdown with an error.')
         exit(1)
@@ -95,13 +95,13 @@ def loadSettings():
 
         if STREETPASS_CYCLE_MINUTES < 1:
             STREETPASS_CYCLE_MINUTES = 30
-            logger.warning('The value for the STREETPASS_CYCLE_MINUTES key in: ' + DASHBOARD + 'assets/json/pipass_config.json is less than one. Defaulting to: ' + str(STREETPASS_CYCLE_MINUTES) + '.')
+            logger.warning('The value for the STREETPASS_CYCLE_MINUTES key in: ' + DASHBOARD + 'config/pipass_config.json is less than one. Defaulting to: ' + str(STREETPASS_CYCLE_MINUTES) + '.')
     except KeyError:
         STREETPASS_CYCLE_MINUTES = 30
-        logger.warning('Missing the STREETPASS_CYCLE_MINUTES key in: ' + DASHBOARD + 'assets/json/pipass_config.json. Defaulting to: ' + str(STREETPASS_CYCLE_MINUTES) + '.')
+        logger.warning('Missing the STREETPASS_CYCLE_MINUTES key in: ' + DASHBOARD + 'config/pipass_config.json. Defaulting to: ' + str(STREETPASS_CYCLE_MINUTES) + '.')
     except ValueError:
         STREETPASS_CYCLE_MINUTES = 30
-        logger.warning('Invalid value for the STREETPASS_CYCLE_MINUTES key in: ' + DASHBOARD + 'assets/json/pipass_config.json. Defaulting to: ' + str(STREETPASS_CYCLE_MINUTES) + '.')
+        logger.warning('Invalid value for the STREETPASS_CYCLE_MINUTES key in: ' + DASHBOARD + 'config/pipass_config.json. Defaulting to: ' + str(STREETPASS_CYCLE_MINUTES) + '.')
 
     # Converting STREETPASS_CYCLE_MINUTES to seconds.
     global STREETPASS_CYCLE_SECONDS
@@ -122,7 +122,7 @@ def loadSettings():
         GSX_KEY = pipass_config['GSX_KEY']
     except KeyError:
         GSX_KEY = "1OfgyryUHeCPth76ziFT985XNLS-O5EXtjQDa0kA1L6M"
-        logger.warning('Missing the GSX_KEY key in: ' + DASHBOARD + 'assets/json/pipass_config.json. Defaulting to: ' + GSX_KEY + '.')
+        logger.warning('Missing the GSX_KEY key in: ' + DASHBOARD + 'config/pipass_config.json. Defaulting to: ' + GSX_KEY + '.')
 
     # The Google Spreadsheet's WORKSHEET that is used for PIPASS_DB.
     global GSX_WORKSHEET
@@ -131,7 +131,7 @@ def loadSettings():
         GSX_WORKSHEET = pipass_config['GSX_WORKSHEET']
     except KeyError:
         GSX_WORKSHEET = "2"
-        logger.warning('Missing the GSX_WORKSHEET key in: ' + DASHBOARD + 'assets/json/pipass_config.json. Defaulting to: ' + GSX_WORKSHEET + '.')
+        logger.warning('Missing the GSX_WORKSHEET key in: ' + DASHBOARD + 'config/pipass_config.json. Defaulting to: ' + GSX_WORKSHEET + '.')
 
     # Constructs the URL where the Google Spreadsheet is located for the
     # Nintendo Zone information. Refer to README at
@@ -162,7 +162,7 @@ def loadSettings():
         HOSTAPD_DRIVER = pipass_config['HOSTAPD_DRIVER']
     except KeyError:
         HOSTAPD_DRIVER = "nl80211"
-        logger.warning('Missing the HOSTAPD_DRIVER key in: ' + DASHBOARD + 'assets/json/pipass_config.json. Defaulting to: ' + HOSTAPD_DRIVER + '.')
+        logger.warning('Missing the HOSTAPD_DRIVER key in: ' + DASHBOARD + 'config/pipass_config.json. Defaulting to: ' + HOSTAPD_DRIVER + '.')
 
     return None
 
