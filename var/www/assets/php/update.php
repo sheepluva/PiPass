@@ -96,7 +96,8 @@ if (!file_exists('/opt/PiPass/config/pipass_dashboard.json'))
 $_GET['command'] = 'upgrade';
 require('ctl.php');
 
-
+// TODO: check if update was successful
+if (true) {
   echo "
     <!DOCTYPE html>
     <html lang='en'>
