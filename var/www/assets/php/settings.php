@@ -144,8 +144,8 @@ if ($_POST)
   );
 
   // trim 'em all
-  foreach ($acceptedargs as $key => &$value) {
-    $newconfig[$key] = trim($value);
+  foreach ($acceptedargs as &$argkey) {
+    $newconfig[$argkey] = trim($_POST[$argkey]);
   }
   unset($value);
 
