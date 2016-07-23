@@ -10,7 +10,8 @@ $whitelist = array(
     'stop',
     'pi-netreset',
     'pi-reboot',
-    'pi-shutdown'
+    'pi-shutdown',
+    'upgrade'
 );
 
 $getpost = array_merge($_GET, $_POST);
