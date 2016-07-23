@@ -123,24 +123,28 @@ if ($_POST)
     return str_replace('-', ':', strtoupper($matches[0]));
   }
 
+  $newconfig = array();
+
   // Replace mac dashes with colons to help guard against hostapd errors.
-  $_POST['AUTHENTICATION'] = preg_replace_callback('/(^|\\s)([0-9A-F]{2}[:-]){5}[0-9A-F]{2}(\\s|$)/i', 'mac_fix_callback', $_POST['AUTHENTICATION']);
+  $newconfig['AUTHENTICATION'] = preg_replace_callback('/(^|\\s)([0-9A-F]{2}[:-]){5}[0-9A-F]{2}(\\s|$)/i', 'mac_fix_callback', $_POST['AUTHENTICATION']);
 
   // Trim leading/trailing whitespaces to help guard against hostapd errors.
-  $_POST['AUTHENTICATION'] = preg_replace('/^\s+|\s+$/m', '', $_POST['AUTHENTICATION']);
+  $newconfig['AUTHENTICATION'] = preg_replace('/^\s+|\s+$/m', '', $newconfig['AUTHENTICATION']);
 
   // Save the list of authenticated Nintendo 3DS systems to /etc/hostapd/mac_accept.
-  file_put_contents('/tmp/mac_accept', $_POST['AUTHENTICATION']);
+  file_put_contents('/tmp/mac_accept', $newconfig['AUTHENTICATION']);
   exec('sudo cp /tmp/mac_accept /etc/hostapd/mac_accept');
 
   // Trim leading/trailing whitespaces to help guard against PiPass DB URL errors.
-  $_POST['GSX_KEY'] = trim($_POST['GSX_KEY']);
+  $newconfig['GSX_KEY'] = trim($_POST['GSX_KEY']);
 
   // Trim leading/trailing whitespaces to help guard against hostapd errors.
-  $_POST['HOSTAPD_DRIVER'] = trim($_POST['HOSTAPD_DRIVER']);
+  $newconfig['HOSTAPD_DRIVER'] = trim($_POST['HOSTAPD_DRIVER']);
 
   // Convert the form data into a JSON format.
-  $json = json_encode($_POST);
+  $json = json_encode($newconfig);
+
+  unset($newconfig);
 
   // Save the JSON formatted settings to PiPass.
   file_put_contents('/tmp/pipass_config.json', $json);
