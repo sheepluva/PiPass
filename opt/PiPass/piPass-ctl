@@ -18,13 +18,12 @@ System commands:
 Other commands:
     backup      - Creates a backup of the current PiPass installation
     rollback    - Restores a Pipass installation that was previously crated with "backup"
-                  You can provide a backup-zip as argument. If not the latest one is restored.
     update      - Updates PiPass to the newest version
     --help      - Shows this help text'
 }
 
 show_error() {
-    MSG='PiPass advance: An error occured.'
+    MSG="PiPass $COMMAND: An error occured."
     if [ -n "$1" ]; then
         MSG="$1"
     fi
@@ -92,6 +91,10 @@ do_pishutdown() {
     return $?
 }
 
+get_pipasswebroot() {
+    sed 's/^.*"\([^"]\+\)".*$/\1/;s#\\/#/#g' /opt/PiPass/config/pipass_dashboard.json
+}
+
 install_update_dependencies() {
 
     # 7z is a required component for the update process, enforce that dependency.
@@ -127,8 +130,9 @@ do_backup_create() {
     echo 'Creating backup in /root ...'
     local bkpfile="pipass_backup_$(date +%s).tar.gz"
     local webroot="$1"
+echo "$@"
 
-    tar -czvf "/root/$bkpfile" /opt/PiPass/ "webroot" || return 1
+    tar -czvf "/root/$bkpfile" /opt/PiPass/ "$webroot" || return 1
 
     # symlink the just created backup
     ln -sf "$bkpfile" /root/pipass_backup_latest.tar.gz
@@ -139,7 +143,7 @@ do_backup_restore() {
 
     local bkpfile="/root/pipass_backup_latest.tar.gz"
 
-    tar -xzvf "$bpkfile" --same-owner --directory / || return 1
+    tar -xzvf "$bkpfile" --same-owner --directory / || return 1
 }
 
 # exitcode > 1 indicated that a rollback is needed
@@ -167,7 +171,7 @@ do_update() {
     fi
 
     # Get the installation path of the PiPass Dashboard.
-    PIPASSWEBROOT="$(sed 's/^.*"\([^"]\+\)".*$/\1/;s#\\/#/#g' /opt/PiPass/config/pipass_dashboard.json)"
+    PIPASSWEBROOT="$(get_pipasswebroot)"
 
     if [ -z "$PIPASSWEBROOT" ] && [  ]; then
         echo 'Failed to read dashboard location from /opt/PiPass/config/pipass_dashboard.json' >&2
@@ -255,10 +259,10 @@ case "$COMMAND" in
         rm -rf /tmp/PiPass/
         ;;
     backup)
-        do_backup_restore || exitcode=1
+        do_backup_create "$(get_pipasswebroot)" || exitcode=1
         ;;
     restore)
-        do_backup_create || exitcode=1
+        do_backup_restore || exitcode=1
         ;;
     --help)
         usage
