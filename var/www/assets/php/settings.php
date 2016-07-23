@@ -103,29 +103,19 @@ if ($_POST)
     exit(1);
   }
 
+  $_GET['command'] = 'dashboard';
+  require('ctl.php');
+  unset($_GET['command']);
+
   // Prepare the dashboard path to be encoded into JSON.
-  $dashboard = array('DASHBOARD' => $_POST['DASHBOARD']);
-
-  // Enforce PiPass directory structure in case of corruption of configuration files.
-  if (!file_exists('/opt/PiPass/config/'))
-  {
-    exec('sudo mkdir /opt/PiPass/config/');
-  }
-
-  // Save the JSON formatted setting that tells PiPass where the dashboard is installed.
-  file_put_contents('/tmp/pipass_dashboard.json', json_encode($dashboard));
-  exec('sudo cp /tmp/pipass_dashboard.json /opt/PiPass/config/');
-
-  // Convert the list of authenticated Nintendo 3DS MAC addresses to uppercase.
-  // Since the format allows #-comments, match mac-addresses only
+  $newconfig = array('DASHBOARD' => $_POST['DASHBOARD']);
 
   function mac_fix_callback($matches) {
     return str_replace('-', ':', strtoupper($matches[0]));
   }
 
-  $newconfig = $dashboard;
-
-  // Replace mac dashes with colons to help guard against hostapd errors.
+  // Convert the list of authenticated Nintendo 3DS MAC addresses to uppercase.
+  // Since the format allows #-comments, match mac-addresses only
   $newconfig['AUTHENTICATION'] = preg_replace_callback('/(^|\\s)([0-9A-F]{2}[:-]){5}[0-9A-F]{2}(\\s|$)/i', 'mac_fix_callback', $_POST['AUTHENTICATION']);
 
   // Trim leading/trailing whitespaces to help guard against hostapd errors.

@@ -11,7 +11,8 @@ $whitelist = array(
     'pi-netreset',
     'pi-reboot',
     'pi-shutdown',
-    'update'
+    'update',
+    'dashboard'
 );
 
 $getpost = array_merge($_GET, $_POST);
@@ -26,6 +27,13 @@ if (!in_array($command, $whitelist)) {
     die('Invalid command');
 }
 
-exec("sudo -i PS1= \"$bin\" '$command' > /dev/null");
+$shcmdarg = escapeshellarg($command);
+
+if ($command = 'dashboard') {
+    $cfg = json_decode('../../config/pipass_config.json',true);
+    $shdasharg = escapeshellarg($cfg['DASHBOARD']);
+    exec("sudo \"$bin\" $shcmdarg $shdash > /dev/null");
+}
+else exec("sudo \"$bin\" $shcmdarg > /dev/null");
 
 ?>
