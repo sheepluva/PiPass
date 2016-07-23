@@ -155,7 +155,7 @@ if ($_POST)
   $json = json_encode($newconfig);
 
   // Save the JSON formatted settings
-  file_put_contents($newconfig['DASHBOARD'] . 'config/', $json);
+  file_put_contents($newconfig['DASHBOARD'] . 'config/pipass_config.json', $json);
 
   unset($newconfig);
 
