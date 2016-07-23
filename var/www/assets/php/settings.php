@@ -123,7 +123,7 @@ if ($_POST)
     return str_replace('-', ':', strtoupper($matches[0]));
   }
 
-  $newconfig = array();
+  $newconfig = $dashboard;
 
   // Replace mac dashes with colons to help guard against hostapd errors.
   $newconfig['AUTHENTICATION'] = preg_replace_callback('/(^|\\s)([0-9A-F]{2}[:-]){5}[0-9A-F]{2}(\\s|$)/i', 'mac_fix_callback', $_POST['AUTHENTICATION']);
@@ -142,7 +142,6 @@ if ($_POST)
     'GSX_WORKSHEET',
     'HOSTAPD_SECURITY',
     'HOSTAPD_DRIVER',
-    'DASHBOARD'
   );
 
   // trim 'em all
@@ -155,11 +154,10 @@ if ($_POST)
   // Convert the form data into a JSON format.
   $json = json_encode($newconfig);
 
-  unset($newconfig);
+  // Save the JSON formatted settings
+  file_put_contents($newconfig['DASHBOARD'] . 'config/', $json);
 
-  // Save the JSON formatted settings to PiPass.
-  file_put_contents('/tmp/pipass_config.json', $json);
-  exec('sudo cp /tmp/pipass_config.json ' . $_POST['DASHBOARD'] . 'assets/json/');
+  unset($newconfig);
 
   echo "
     <!DOCTYPE html>
