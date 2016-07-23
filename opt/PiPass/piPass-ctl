@@ -20,7 +20,8 @@ Other commands:
     restore     - Restores a Pipass installation that was previously crated with "backup"
                   Note: This will also cause your settings to be reverted to the time when the backup was created
     update      - Updates PiPass to the newest version
-    --help      - Shows this help text'
+    dashboard   - Let'\''s you point PiPass to the new location of the PiPass dashboard.
+    help        - Shows this help text'
 }
 
 show_error() {
@@ -33,17 +34,41 @@ show_error() {
     logger -t 'piPass-ctl ERROR' "$MSG"
 }
 
-if [ $# -ne 1 ]; then
-    show_error 'Invalid number of arguments.'
-    usage >&2
+COMMAND="$1"
+
+if [ "$COMMAND" = 'dashboard' ]; then
+    if [ $# -ne 2 ]; then
+        show_error 'Please supply exactly 1 argument: The new location of the PiPass dashboard.'
+        if [ -n "$PS1" ]; then
+            usage >&2
+        fi
+        exit 2
+    fi
+elif [ $# -ne 1 ]; then
+    show_error 'No arguments allowed.'
+    if [ -n "$PS1" ]; then
+        usage >&2
+    fi
     exit 2
 fi
-
-COMMAND="$1"
 
 if [ -z "$PS1" ]; then
     logger -t 'piPass-ctl' "COMMAND: $*"
 fi
+
+set_dashboard() {
+    # local configdir="$(dirname "$0")/config"
+    local configdir="/opt/PiPass/config"
+
+    if [ ! -d "$configdir" ]; then
+        mkdir "$configdir" || return 1
+    fi
+    # sed: strip surrounding whitespaces and ensure trailing /
+    echo "$(echo "$1" | sed -r '
+        s#^\s+##;
+        s#/? *$#/#;
+        s#^.*$#{"DASHBOARD":"\0"}#')" > "$configdir/pipass_dashboard.json" || return 1
+}
 
 do_advance() {
     pkill --signal SIGUSR2 -f piPass.py
@@ -264,7 +289,10 @@ case "$COMMAND" in
         do_stop
         do_backup_restore || exitcode=1
         ;;
-    --help)
+    dashboard)
+        set_dashboard "$2" || exitcode=1
+        ;;
+    help | -h | --help)
         usage
         ;;
 esac
