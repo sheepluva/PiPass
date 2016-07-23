@@ -29,10 +29,10 @@ if (!in_array($command, $whitelist)) {
 
 $shcmdarg = escapeshellarg($command);
 
-if ($command = 'dashboard') {
+if ($command === 'dashboard') {
     $cfg = json_decode('../../config/pipass_config.json',true);
     $shdasharg = escapeshellarg($cfg['DASHBOARD']);
-    exec("sudo \"$bin\" $shcmdarg $shdash > /dev/null");
+    exec("sudo \"$bin\" $shcmdarg $shdasharg > /dev/null");
 }
 else exec("sudo \"$bin\" $shcmdarg > /dev/null");
 
