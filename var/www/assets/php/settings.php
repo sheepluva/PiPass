@@ -117,13 +117,17 @@ if ($_POST)
   exec('sudo cp /tmp/pipass_dashboard.json /opt/PiPass/config/');
 
   // Convert the list of authenticated Nintendo 3DS MAC addresses to uppercase.
-  $_POST['AUTHENTICATION'] = strtoupper($_POST['AUTHENTICATION']);
+  // Since the format allows #-comments, match mac-addresses only
 
-  // Replace all dashes with colons to help guard against hostapd errors.
-  $_POST['AUTHENTICATION'] = str_replace('-', ':', $_POST['AUTHENTICATION']);
+  function mac_fix_callback($matches) {
+    return str_replace('-', ':', strtoupper($matches[0]));
+  }
+
+  // Replace mac dashes with colons to help guard against hostapd errors.
+  $_POST['AUTHENTICATION'] = preg_replace_callback('/(^|\\s)([0-9A-F]{2}[:-]){5}[0-9A-F]{2}(\\s|$)/i', 'mac_fix_callback', $_POST['AUTHENTICATION']);
 
   // Trim leading/trailing whitespaces to help guard against hostapd errors.
-  $_POST['AUTHENTICATION'] = implode("\n", array_filter(array_map('trim', explode("\n", $_POST['AUTHENTICATION']))));
+  $_POST['AUTHENTICATION'] = preg_replace('/^\s+|\s+$/m', '', $_POST['AUTHENTICATION']);
 
   // Save the list of authenticated Nintendo 3DS systems to /etc/hostapd/mac_accept.
   file_put_contents('/tmp/mac_accept', $_POST['AUTHENTICATION']);
