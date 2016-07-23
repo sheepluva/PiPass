@@ -29,11 +29,8 @@ show_error() {
         MSG="$1"
     fi
 
-    if [ -n "$PS1" ]; then
-        echo "ERROR: $MSG" >&2
-    else
-        logger -t 'piPass-ctl ERROR' "$MSG"
-    fi
+    echo "ERROR: $MSG" >&2
+    logger -t 'piPass-ctl ERROR' "$MSG"
 }
 
 if [ $# -ne 1 ]; then
@@ -188,7 +185,7 @@ do_update() {
     # Backup the PiPass settings.
     cp -v /opt/PiPass/config/pipass_dashboard.json /tmp/PiPass/ || return 1
 
-    cp -v "${PIPASSWEBROOT}assets/json/pipass_config.json" /tmp/PiPass/ || return 1
+    cp -v "${PIPASSWEBROOT}config/pipass_config.json" /tmp/PiPass/ || return 1
 
     # Ensure permissions are correct before the upgrading process.
     chmod -R 700 /tmp/PiPass/
