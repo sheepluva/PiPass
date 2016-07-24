@@ -293,6 +293,7 @@ loadSettings()
 
 # Network configuration file path for PiPass to spoof as a Nintendo Zone.
 NETWORK_CONFIGURATION = "/etc/hostapd/hostapd.conf"
+NETWORK_MACACCESSFILE = "/etc/hostapd/mac_accept"
 
 # Time interval in seconds that StreetPass requires between successive visits to a Nintendo Zone.
 STREETPASS_VISIT_INTERVAL = (8 * 60) * 60
@@ -411,6 +412,26 @@ while doExecute:
         # A usable Nintendo Zone was found, so visits should not get cleared on the next pass.
         clearVisits = False
 
+        # Write the current mac-accept list
+        try:
+            fo = open(NETWORK_CONFIGURATION, "w")
+        except IOError:
+            logger.error('Unable to write the file: ' + NETWORK_MACACCESSFILE + '.')
+            updateStatus('Not Available', 'Not Available', 'PiPass is not running')
+            logger.info('PiPass has been shutdown with an error.')
+            exit(1)
+
+        try:
+            fo.write(pipass_config['AUTHENTICATION'])
+        except KeyError:
+            fo.close()
+            logger.error('Missing the AUTHENTICATION key in: ' + DASHBOARD + 'config/pipass_config.json.')
+            updateStatus('Not Available', 'Not Available', 'PiPass is not running')
+            logger.info('PiPass has been shutdown with an error.')
+            exit(1)
+
+        fo.close()
+
         # Write the current zone information to NETWORK_CONFIGURATION.
         try:
             fo = open(NETWORK_CONFIGURATION, "w")
@@ -420,7 +441,7 @@ while doExecute:
             logger.info('PiPass has been shutdown with an error.')
             exit(1)
 
-        conf = "interface=wlan0\nbridge=br0\ndriver=" + HOSTAPD_DRIVER + "\nssid=" + zoneValues[0] + "\nbssid=" + zoneValues[1] + "\nhw_mode=g\nchannel=6\nauth_algs=1\nwpa=0\nmacaddr_acl=" + HOSTAPD_SECURITY + "\naccept_mac_file=/etc/hostapd/mac_accept\nwmm_enabled=0\nignore_broadcast_ssid=0"
+        conf = "interface=wlan0\nbridge=br0\ndriver=" + HOSTAPD_DRIVER + "\nssid=" + zoneValues[0] + "\nbssid=" + zoneValues[1] + "\nhw_mode=g\nchannel=6\nauth_algs=1\nwpa=0\nmacaddr_acl=" + HOSTAPD_SECURITY + "\naccept_mac_file=" + NETWORK_MACACCESSFILE + "\nwmm_enabled=0\nignore_broadcast_ssid=0"
 
         fo.write(conf)
         fo.close()

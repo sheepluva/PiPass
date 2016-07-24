@@ -121,10 +121,6 @@ if ($_POST)
   // Trim leading/trailing whitespaces to help guard against hostapd errors.
   $newconfig['AUTHENTICATION'] = preg_replace('/^\s+|\s+$/m', '', $newconfig['AUTHENTICATION']);
 
-  // Save the list of authenticated Nintendo 3DS systems to /etc/hostapd/mac_accept.
-  file_put_contents('/tmp/mac_accept', $newconfig['AUTHENTICATION']);
-  exec('sudo cp /tmp/mac_accept /etc/hostapd/mac_accept');
-
   $acceptedargs = array(
     'STREETPASS_CYCLE_MINUTES',
     'PIPASS_SHUFFLE',
