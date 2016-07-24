@@ -428,7 +428,7 @@ while doExecute:
         # Write the current mac-accept list
         try:
             fo = open(NETWORK_MACACCEPTFILE, "w")
-            fo.write(pipass_config['AUTHENTICATION'])
+            fo.write(AUTHENTICATION)
         except IOError:
             logger.error('Unable to write the file: ' + NETWORK_MACACCEPTFILE + '.')
             updateStatus('Not Available', 'Not Available', 'PiPass is not running')
