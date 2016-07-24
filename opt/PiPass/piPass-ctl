@@ -317,9 +317,11 @@ case "$COMMAND" in
         ;;
     update | devupdate)
         if [ "$COMMAND" = 'devupdate']; then
-            do_devupdate || exitcode=1
+            do_devupdate
+            exitcode=$?
         else
-            do_update || exitcode=1
+            do_update
+            exitcode=$?
         fi
         if [ $exitcode -gt 1 ]; then
             echo 'ERROR: Update failed! Starting rollback...'
