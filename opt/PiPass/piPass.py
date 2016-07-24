@@ -164,14 +164,8 @@ def loadSettings():
         HOSTAPD_DRIVER = "nl80211"
         logger.warning('Missing the HOSTAPD_DRIVER key in: ' + DASHBOARD + 'config/pipass_config.json. Defaulting to: ' + HOSTAPD_DRIVER + '.')
 
-    # Write the current mac-accept list
-    try:
-        fo = open(NETWORK_CONFIGURATION, "w")
-    except IOError:
-        logger.error('Unable to write the file: ' + NETWORK_MACACCEPTFILE + '.')
-        updateStatus('Not Available', 'Not Available', 'PiPass is not running')
-        logger.info('PiPass has been shutdown with an error.')
-        exit(1)
+    # load list of accepted mac-addresses
+    global AUTHENTICATION
 
     try:
         fo.write(pipass_config['AUTHENTICATION'])
@@ -182,7 +176,6 @@ def loadSettings():
         logger.info('PiPass has been shutdown with an error.')
         exit(1)
 
-    fo.close()
 
     return None
 
@@ -305,6 +298,7 @@ GSX_WORKSHEET = None
 PIPASS_DB = None
 HOSTAPD_SECURITY = None
 HOSTAPD_DRIVER = None
+AUTHENTICATION = None
 
 loadDashboard()
 loadSettings()
@@ -431,6 +425,18 @@ while doExecute:
 
         # A usable Nintendo Zone was found, so visits should not get cleared on the next pass.
         clearVisits = False
+
+        # Write the current mac-accept list
+        try:
+            fo = open(NETWORK_CONFIGURATION, "w")
+            fo.write(pipass_config['AUTHENTICATION'])
+        except IOError:
+            logger.error('Unable to write the file: ' + NETWORK_MACACCEPTFILE + '.')
+            updateStatus('Not Available', 'Not Available', 'PiPass is not running')
+            logger.info('PiPass has been shutdown with an error.')
+            exit(1)
+
+        fo.close()
 
         # Write the current zone information to NETWORK_CONFIGURATION.
         try:
