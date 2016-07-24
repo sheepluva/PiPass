@@ -182,7 +182,8 @@ do_update() {
     if [ -d /tmp/PiPass ]; then
         if [ "$(find /tmp/PiPass/ -maxdepth 0 -mmin -15 -exec echo 'recent' \;)" = 'recent' ]; then
             show_error 'There already seems to be an update started within the last 15 minutes. Try again later.'
-            return 1
+            # exit immediatly, so that no cleanup is done
+            exit 1
         else
             echo 'Note: Old update files found! Purging...'
             rm -rf '/tmp/PiPass' || return 1
