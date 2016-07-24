@@ -1,38 +1,54 @@
 <?php
 
-$bin = '/opt/PiPass/piPass-ctl';
+function run_pipass_ctl_command($command = false) {
 
-$whitelist = array(
-    'advance',
-    'reload',
-    'start',
-    'status',
-    'stop',
-    'pi-netreset',
-    'pi-reboot',
-    'pi-shutdown',
-    'update',
-    'dashboard'
-);
+    $bin = '/opt/PiPass/piPass-ctl';
 
-$getpost = array_merge($_GET, $_POST);
+    $whitelist = array(
+        'advance',
+        'reload',
+        'start',
+        'status',
+        'stop',
+        'pi-netreset',
+        'pi-reboot',
+        'pi-shutdown',
+        'update',
+        //'backup',
+        //'restore',
+        'dashboard'
+    );
 
-if (!array_key_exists('command', $getpost)) {
-    die('No command specified');
+
+    if (($command === false) || (strlen(trim($command)) < 1)) {
+        error_log('No command specified');
+        return false;
+    }
+
+    if (!in_array($command, $whitelist)) {
+        error_log('Invalid command');
+        return false;
+    }
+
+    $shcmdarg = escapeshellarg($command);
+
+    $output = array();
+    $exitcode = 0;
+
+    if ($command === 'dashboard') {
+        $shdasharg = escapeshellarg($_POST['DASHBOARD']);
+        exec("sudo \"$bin\" $shcmdarg $shdasharg > /dev/null", $output, $exitcode);
+    }
+    else exec("sudo \"$bin\" $shcmdarg > /dev/null", $output, $exitcode);
+
+    return ($exitcode === 0);
 }
 
-$command = $getpost['command'];
-
-if (!in_array($command, $whitelist)) {
-    die('Invalid command');
+if (array_key_exists('command', $_GET)) {
+    run_pipass_ctl_command($_GET['command']);
 }
-
-$shcmdarg = escapeshellarg($command);
-
-if ($command === 'dashboard') {
-    $shdasharg = escapeshellarg($getpost['DASHBOARD']);
-    exec("sudo \"$bin\" $shcmdarg $shdasharg > /dev/null");
+else if (array_key_exists('command', $_POST)) {
+    run_pipass_ctl_command($_POST['command']);
 }
-else exec("sudo \"$bin\" $shcmdarg > /dev/null");
 
 ?>
