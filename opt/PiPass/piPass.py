@@ -168,9 +168,8 @@ def loadSettings():
     global AUTHENTICATION
 
     try:
-        fo.write(pipass_config['AUTHENTICATION'])
+        AUTHENTICATION = pipass_config['AUTHENTICATION']
     except KeyError:
-        fo.close()
         logger.error('Missing the AUTHENTICATION key in: ' + DASHBOARD + 'config/pipass_config.json.')
         updateStatus('Not Available', 'Not Available', 'PiPass is not running')
         logger.info('PiPass has been shutdown with an error.')
@@ -428,7 +427,7 @@ while doExecute:
 
         # Write the current mac-accept list
         try:
-            fo = open(NETWORK_CONFIGURATION, "w")
+            fo = open(NETWORK_MACACCEPTFILE, "w")
             fo.write(pipass_config['AUTHENTICATION'])
         except IOError:
             logger.error('Unable to write the file: ' + NETWORK_MACACCEPTFILE + '.')
