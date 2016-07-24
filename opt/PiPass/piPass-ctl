@@ -316,7 +316,7 @@ case "$COMMAND" in
         do_netreset || exitcode=1
         ;;
     update | devupdate)
-        if [ "$COMMAND" = 'devupdate']; then
+        if [ "$COMMAND" = 'devupdate' ]; then
             do_devupdate
             exitcode=$?
         else
