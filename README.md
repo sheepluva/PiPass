@@ -16,7 +16,7 @@ Intruders can abuse your internet connection, easily reach other devices in the 
 ## Table of Contents
 - [About PiPass](#about-pipass)
 - [Master Branch Updates](#master-branch-updates)
-- [What's New in Version 1.6](#whats-new-in-version-16)
+- [What's New in latest version](#whats-new-in-latest-version)
 - [Known Behaviours](#known-behaviours)
 - [Helpful Information](#helpful-information)
     - [RTL8188CUS Chipset](#rtl8188cus-chipset)
@@ -55,27 +55,20 @@ If you like PiPass, please star the project on GitHub and thanks for trying out 
 <strong><a href="#table-of-contents">[Back to Top]</a></strong>
 
 ## Master Branch Updates
-The master branch is currently on par with PiPass 1.6.
+The master branch contains the latest *possibly untested* changes.
+If you're not already participating in development and want to test recent changes,
+you probably want do download releases or use the stable branch instead.
 
 <strong><a href="#table-of-contents">[Back to Top]</a></strong>
 
-## What's New in Version 1.6
-PiPass 1.6 builds upon on its logging system by offering relevant information for identifying a wider range of potential issues relating to WiFi chipsets and network connectivity. This new release also focuses on tightening up the dashboard to offer a better user experience.
-
-The list of changes are as follows:
-
-* PiPass will now accept incorrectly formatted MAC addresses that use dashes instead of colons. PiPass will internally convert dashes to colons when dealing with Nintendo Zone MAC addresses and externally make this change for authenticated MAC addresses.
-* PiPass will now check network connectivity. If there is a network connectivity issue, PiPass will stop cycling and stop hostapd. Once network connectivity has been re-established, PiPass will continue cycling again.
-* PiPass can now detect incompatible hostapd WiFi chipsets that are unable to change its own MAC address.
-* 'PiPass Settings' uses JQuery form validation instead of HTML5 form validation.
-* Added 'Time Until Next Zone' progress bar to the dashboard.
-* User interface tweaks.
-* HTML code cleanup.
+## What's New in the latest version
+See the list of releases, at some point there will also be a changelog file.
 
 <strong><a href="#table-of-contents">[Back to Top]</a></strong>
 
 ## Known Behaviours
 PiPass sometimes does not display expected or up-to-date values. Chrome is known to be finicky with this and will NOT cause issues with PiPass. When in doubt, manually refresh your browser as this is related to browser caching.
+PiPass fails to display correct zone progress if time on client machine and PiPass differ significantly.
 
 <strong><a href="#table-of-contents">[Back to Top]</a></strong>
 
@@ -109,105 +102,12 @@ Before moving onto your chosen installation method, please ensure that your Rasp
 <strong><a href="#table-of-contents">[Back to Top]</a></strong>
 
 ##### PiPass Pre-made Image
-Currently, the pre-made image can only be used for the Raspberry Pi 2. PiPass can be downloaded through these mirrors:
-
-* <a href="https://drive.google.com/open?id=0B8bbfqFbkJvVfnE0amxxcXYyd0lMQVFwTjhnNUFRaXpnVi1YWnd2MDVUYW5tUkR6bVk3c2s&authuser=0" target="_blank">Mirror 1 @ Google Drive</a>.
-* <a href="https://www.dropbox.com/sh/aflyu5ncey33fqs/AAC2AKM-udIwXSnqZuxGT4XJa?dl=0" target="_blank">Mirror 2 @ Dropbox</a>.
-
-The PiPass image was built using <a href="https://minibianpi.wordpress.com/" target="_blank">Minibian</a>, a light weight image based on the Raspbian operating system. The smallest SD card at my availability was 4GB, so a 4GB SD card will be required at minimum. The actual "real" size of everything is just a little over 500MB.
-
-If you are not sure on how to install an image onto your SD card, the following guide here does an excellent job in explaining how to do this for all three major platforms:
-* <a href="http://www.raspberrypi.org/documentation/installation/installing-images/" target="_blank">Installing Images</a>.
-
-Once you have the PiPass image onto your SD card, you can now load PiPass into your Raspberry Pi. Though this is not necessary, if you need to log into your Raspberry Pi, the following guide is good if you will be accessing remotely through another computer:
-* <a href="http://www.raspberrypi.org/documentation/remote-access/ssh/README.md" target="_blank">Using SSH</a>.
-* <a href="http://www.raspberrypi.org/documentation/troubleshooting/hardware/networking/ip-address.md" target="_blank">Finding Your IP Address</a>.
-
-Root access is only configured and the username and password is:
-
-    +   Username:   root
-    +   Password:   PiPass
-
-For security sake, PiPass will only work on the Nintendo 3DS systems that you authorize. Access the PiPass Dashboard by opening up a web browser on a device of your choice and enter your Raspberry Pi's IP address into the address bar. The PiPass Dashboard should be displayed. Go to your Nintendo 3DS and open up your connection settings to find out your 3DS' MAC address. Once you have your MAC address, you can add it to the authenticated list by doing the following:
-
-    +   Click "PiPass".
-    +   Click "Settings".
-    +   Enter your 3DS' MAC address on a separate line and in the format of XX:XX:XX:XX:XX:XX.
-    +   Click "Save".
-
-With your 3DS' MAC address saved, you will want to start PiPass:
-
-    +   Click "PiPass".
-    +   Click "Start".
-    +   Click "Start PiPass".
-
-Wait a few seconds for the PiPass services to fully startup. At this point, you may have StreetPasses waiting for you already. If not, you may want to check the PiPass Logs for detailed information:
-
-    +   Click "Dashboard".
-    +   Click "PiPass Logs".
-
-Generally speaking, if hostapd services are running, you should be OK. The PiPass logging system will send a warning message if a driver issue or invalid MAC address is suspected to be a problem.
-
-If the PiPass logging system is sending a warning message regarding invalid MAC addresses, then you should make a note of the offending MAC addresses and double check if you have entered them correctly. PiPass will automatically skip invalid MAC addresses and move to the next valid Nintendo Zone in the list. Please note that some MAC addresses appear to be valid, but they are actually invalid according to hostapd. In these cases, it is best to edit PiPass DB. More information about editing PiPass DB can be found in the sections below.
-
-For WiFi driver issues, the PiPass pre-made image has drivers pre-installed for Ralink, ZyDAS ZD1211/1211B, Atheros AR5007UG, and Realtek chipsets. Check to see if your WiFi adapter is based on one of these chipsets and make sure that it can function as an "Access Point". There might be some changes that you will need to do. I've tried to make these changes easy, so if it is a driver issue, you may want to use the PiPass Dashboard to configure the correct driver:
-
-    +   Navigate to the PiPass Dashboard with your web browser.
-    +   Click "PiPass".
-    +   Click "Settings".
-    +   Enter the correct driver name for "Hostapd Driver".
-    +   Click "Save".
-
-If problems persist, refer to the manual guide for some extra help.
+Not available for PiPass-SLE, but you might want to <a href="https://github.com/Matthew-Hsu/PiPass#pipass-pre-made-image">checkout original PiPass</a>
 
 <strong><a href="#table-of-contents">[Back to Top]</a></strong>
 
 ##### Automatic Installer
-<b>NOTE: </b>The automatic installer is considered BETA at the moment. It works for me on a clean and configured image of Minibian and it should work just the same on a clean and configured image of Raspbian. If there are some issues with the installer, please let me know.
-
-The PiPass automatic installer is meant to help those install PiPass on all models of the Raspberry Pi. Depending on the operating system, the automatic installer will work on all Raspbian / Debian distributions. Before you begin, the automatic installer assumes that you have a operating system already installed and configured on your Raspberry Pi.
-
-The installer can be downloaded through <a href="https://drive.google.com/open?id=0B8bbfqFbkJvVflpDNWhndW5ZNVV5VkpVWWNGZUhWdjJ4bVNreGI0NXlteVBEX3NYZkRZLU0&authuser=0" target="_blank">Google Drive</a> or through <a href="https://www.dropbox.com/sh/pe2v63t476pmg9n/AADfRQVSMloUKkOhmEkGcjdwa?dl=0" target="_blank">Dropbox</a>. After downloading, simply copy install_pipass.sh to your Raspberry Pi and execute it through the terminal. There may be some permission issues, so run this command in the same directory in where you copied install_pipass.sh:
-
-    ->    sudo chmod 755 install_pipass.sh
-
-While in the same directory as install_pipass.sh, run this command to begin the installation:
-
-    ->    ./install_pipass.sh
-
-Once the installation is completed, your Raspberry Pi will restart. On another device, open up the web browser and enter the IP address of your Raspberry Pi to access the PiPass Dashboard.
-
-For security sake, PiPass will only work on the Nintendo 3DS systems that you authorize. Go to your Nintendo 3DS and open up your connection settings to find out your 3DS' MAC address. Once you have your MAC address, you can add it to the authenticated list by doing the following:
-
-    +   Click "PiPass".
-    +   Click "Settings".
-    +   Enter your 3DS' MAC address on a separate line and in the format of XX:XX:XX:XX:XX:XX.
-    +   Click "Save".
-
-With your 3DS' MAC address saved, you will want to start PiPass:
-
-    +   Click "PiPass".
-    +   Click "Start".
-    +   Click "Start PiPass".
-
-Wait a few seconds for the PiPass services to fully startup. At this point, you may have StreetPasses waiting for you already. If not, you may want to check the PiPass Logs for detailed information:
-
-    +   Click "Dashboard".
-    +   Click "PiPass Logs".
-
-Generally speaking, if hostapd services are running, you should be OK. The PiPass logging system will send a warning message if a driver issue or invalid MAC address is suspected to be a problem.
-
-If the PiPass logging system is sending a warning message regarding invalid MAC addresses, then you should make a note of the offending MAC addresses and double check if you have entered them correctly. PiPass will automatically skip invalid MAC addresses and move to the next valid Nintendo Zone in the list. Please note that some MAC addresses appear to be valid, but they are actually invalid according to hostapd. In these cases, it is best to edit PiPass DB. More information about editing PiPass DB can be found in the sections below.
-
-For WiFi driver issues, the PiPass automatic installer installs drivers for Ralink, ZyDAS ZD1211/1211B, Atheros AR5007UG, and Realtek chipsets. Check to see if your WiFi adapter is based on one of these chipsets and make sure that it can function as an "Access Point". There might be some changes that you will need to do. I've tried to make these changes easy, so if it is a driver issue, you may want to use the PiPass Dashboard to configure the correct driver:
-
-    +   Navigate to the PiPass Dashboard with your web browser.
-    +   Click "PiPass".
-    +   Click "Settings".
-    +   Enter the correct driver name for "Hostapd Driver".
-    +   Click "Save".
-
-If problems persist, refer to the manual guide for some extra help.
+Not available for PiPass-SLE, but you might want to <a href="https://github.com/Matthew-Hsu/PiPass#automatic-installer">checkout original PiPass</a>
 
 <strong><a href="#table-of-contents">[Back to Top]</a></strong>
 
@@ -220,7 +120,6 @@ Here is a list of dependencies needed for PiPass, so install the following packa
     ->  sudo apt-get install bridge-utils -y
     ->  sudo apt-get install hostapd -y
     ->  sudo apt-get install iputils-ping -y
-    ->  sudo apt-get install p7zip-full -y
     ->  sudo apt-get install php5 -y
     ->  sudo apt-get install php5-common -y
     ->  sudo apt-get install php5-cli -y
@@ -239,21 +138,24 @@ You may want to install the following in addition to the correct WiFi driver:
     ->  sudo apt-get install firmware-linux-nonfree -y
     ->  sudo apt-get install wireless-tools -y
 
-Now download PiPass from the 1.6 branch as a zip file and extract the contents on your local machine. You will notice three directories inside PiPass: etc, opt, and var. These three directories are the locations where you want to install PiPass (e.g., Linux root locations would be /etc/, /opt/, and /var/). Go ahead and merge the directories and it will be safe to overwrite the files with PiPass' configuration files.
+
+Now download PiPass-SLE from [/sheepluva/PiPass-SLE/releases/] as a zip or tar.gz file and extract the contents on your local machine.
+You will notice three directories inside the extracted contents: etc, opt, and var. These three directories are the locations where you want to install PiPass (e.g., Linux root locations would be /etc/, /opt/, and /var/). Go ahead and merge the directories and it will be safe to overwrite the files with PiPass' configuration files.
 
 Most of the features controlled by PiPass can actually be ran through the PiPass Dashboard. Since your Raspberry Pi will act as a web server as well, you will need to make sure it has the permissions to do so. The following commands can grant execution:
 
-    ->  sudo chmod -R 755 /opt/PiPass/
-    ->  sudo chmod -R 755 /var/www/
+    ->  sudo chmod -R 755 /opt/PiPass/ /var/www/
 
-Now this part is a little more involved as we will need to grant the Dashboard some rights for execution. Typically, you would not want to do this on a public webpage, but since PiPass is ran locally and that we have some security measures in place, it should be fine. We'll need root access, so run the following commands:
+Also make sure the web server can write its config
+    ->  sudo chown -R www:data /var/www/config/
 
-    ->  su
-    ->  visudo -f /etc/sudoers
+Now this part is a little more involved as we will need to grant the Dashboard some rights for root-level execution of the PiPass control script, so run the following commands:
+
+    ->  sudo visudo -f /etc/sudoers
 
 Now add the following line at the end of the file:
 
-    +   www-data ALL=(ALL:ALL) NOPASSWD: ALL
+    +   www-data ALL=(ALL:ALL) NOPASSWD: /opt/PiPass/piPass-ctl
 
 For security sake, PiPass will only work on the Nintendo 3DS systems that you authorize. Access the PiPass Dashboard by opening up a web browser on a device of your choice and enter your Raspberry Pi's IP address into the address bar. The PiPass Dashboard should be displayed. Go to your Nintendo 3DS and open up your connection settings to find out your 3DS' MAC address. Once you have your MAC address, you can add it to the authenticated list by doing the following:
 
