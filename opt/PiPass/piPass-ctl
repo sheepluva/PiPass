@@ -121,6 +121,9 @@ get_pipasswebroot() {
 
 install_update_dependencies() {
 
+    # no requirements
+    return 0
+
     # 7z is a required component for the update process, enforce that dependency.
     if ! which 7z > /dev/null; then
         apt-get install p7zip-full -y
@@ -140,12 +143,12 @@ set_permissions() {
     chmod -R -v 755 /opt/PiPass/
 
     if [ -n "$webroot" ]; then
-        chmod -R -v 755 "$webroot"
+        chmod -R --changes 755 "$webroot"
     fi
 
     if [ -n "$webconfig" ]; then
-        chmod -R -v 755 "$webconfig"
-        chown -R -v www-data:www-data "$webconfig"
+        chmod -R --changes 755 "$webconfig"
+        chown -R --changes www-data:www-data "$webconfig"
     fi
 }
 
@@ -156,7 +159,7 @@ do_backup_create() {
     local webroot="$1"
 echo "$@"
 
-    tar -czvf "/root/$bkpfile" /opt/PiPass/ "$webroot" || return 1
+    tar -czf "/root/$bkpfile" /opt/PiPass/ "$webroot" || return 1
 
     # symlink the just created backup
     ln -sf "$bkpfile" /root/pipass_backup_latest.tar.gz
@@ -169,28 +172,49 @@ do_backup_restore() {
 
     local bkpfile="/root/pipass_backup_latest.tar.gz"
 
-    tar -xzvf "$bkpfile" --same-owner --directory / || return 1
+    echo "Extracting files from $bkpfile ..."
+    tar -xzf "$bkpfile" --same-owner --directory / || return 1
 }
 
 # exitcode > 1 indicated that a rollback is needed
 do_update() {
 
+    # detect already running update
+    if [ -d /tmp/PiPass ]; then
+        if [ "$(find /tmp/PiPass/ -maxdepth 0 -mmin -15 -exec echo 'recent' \;)" = 'recent' ]; then
+            show_error 'There already seems to be an update started within the last 15 minutes. Try again later.'
+            # exit immediatly, so that no cleanup is done
+            exit 1
+        else
+            echo 'Note: Old update files found! Purging...'
+            rm -rf '/tmp/PiPass' || return 1
+        fi
+    fi
+
+    mkdir /tmp/PiPass || return 1
+
     do_stop
 
     install_update_dependencies || return 1
 
-    ZIPDOWNLOADURL="https://github.com/sheepluva/PiPass/archive/master.zip"
+    TARBALLURL='https://github.com/sheepluva/PiPass-SLE/archive/stable.tar.gz'
 
-    if [ ! -d /tmp/PiPass ]; then
-        mkdir -p /tmp/PiPass || return 1
-    else
-        rm -r /tmp/PiPass/* 2>/dev/null
+    # check if different tarball was specified
+    if [ -n "$1" ]; then
+        TARBALLURL="$1"
     fi
 
-    DESTFILE=/tmp/PiPass/master.zip
+    mkdir -p /tmp/PiPass/update || return 1
+
+    # small defense against potiental rogue rm commands
+    cd /tmp/PiPass || return 1
+
+    DESTFILE=/tmp/PiPass/update.tar.gz
+
+    echo "Downloading update from $TARBALLURL ..."
 
     # Download the latest version of PiPass from the master branch.
-    wget -q -O "$DESTFILE" "$ZIPDOWNLOADURL" || return 1
+    wget -q -O "$DESTFILE" "$TARBALLURL" || return 1
 
     if [ ! -f "$DESTFILE" ]; then
         return 1
@@ -199,15 +223,20 @@ do_update() {
     # Get the installation path of the PiPass Dashboard.
     PIPASSWEBROOT="$(get_pipasswebroot)"
 
-    if [ -z "$PIPASSWEBROOT" ] && [  ]; then
-        echo 'Failed to read dashboard location from /opt/PiPass/config/pipass_dashboard.json' >&2
+    if [ -z "$PIPASSWEBROOT" ]; then
+        show_error 'Failed to read dashboard location from /opt/PiPass/config/pipass_dashboard.json'
+        return 1
+    fi
+
+    if [ ! -f "${PIPASSWEBROOT}config/pipass_config.json" ]; then
+        show_error 'FATAL: $PIPASSWEBROOT does not seem to contain a PiPass-Dashboard!'
         return 1
     fi
 
     echo "PiPass Dashboard installation path: $PIPASSWEBROOT"
 
-    # Prepare for the update process.
-    7z x /tmp/PiPass/master.zip -o/tmp/PiPass/ -y || return 1
+    # Prepare for the update process by extracting all files.
+    tar  -x --strip-components=1 -f /tmp/PiPass/update.tar.gz -C /tmp/PiPass/update/ || return 1
 
     # Backup the PiPass settings.
     cp -v /opt/PiPass/config/pipass_dashboard.json /tmp/PiPass/ || return 1
@@ -217,7 +246,7 @@ do_update() {
     # Ensure permissions are correct before the upgrading process.
     chmod -R 700 /tmp/PiPass/
 
-    # Archive, then remove the old version of PiPass.
+    # Archive current PiPass installation, before we eliminate it.
     do_backup_create "$PIPASSWEBROOT"
 
     # Delete old backups
@@ -225,11 +254,21 @@ do_update() {
     find /root -maxdepth 1 -type f -name 'pipass_backup_*.zip' -mtime +30 -delete
 
     # Update PiPass to the latest version.
-    rm -r /opt/PiPass/*
-    cp -r /tmp/PiPass/PiPass-master/opt/PiPass/* /opt/PiPass/ || return 2
+    rm -r '/opt/PiPass/'
+    cp -r /tmp/PiPass/update/opt/PiPass /opt/ || return 2
 
-    rm -r "$PIPASSWEBROOT"*
-    cp -r /tmp/PiPass/PiPass-master/var/www/*  "$PIPASSWEBROOT" || return 2
+    # better safe than sorry
+    if [ -z "$PIPASSWEBROOT" ]; then
+        show_error 'FATAL: $PIPASSWEBROOT is empty!'
+        return 1
+    fi
+    if [ "$PIPASSWEBROOT" =  '/' ]; then
+        show_error 'FATAL: $PIPASSWEBROOT is set to / !'
+        return 1
+    fi
+
+    rm -r "$PIPASSWEBROOT"/*
+    cp -r /tmp/PiPass/update/var/www/*  "$PIPASSWEBROOT" || return 2
 
     cp /tmp/PiPass/pipass_dashboard.json /opt/PiPass/config/ || return 2
 
@@ -245,6 +284,10 @@ do_update() {
     set_permissions "$PIPASSWEBROOT" || return 2
 
     return 0
+}
+
+do_devupdate() {
+    do_update 'https://github.com/sheepluva/PiPass-SLE/archive/master.tar.gz'
 }
 
 exitcode=0
@@ -274,8 +317,14 @@ case "$COMMAND" in
     pi-netreset)
         do_netreset || exitcode=1
         ;;
-    update)
-        do_update || exitcode=1
+    update | devupdate)
+        if [ "$COMMAND" = 'devupdate' ]; then
+            do_devupdate
+            exitcode=$?
+        else
+            do_update
+            exitcode=$?
+        fi
         if [ $exitcode -gt 1 ]; then
             echo 'ERROR: Update failed! Starting rollback...'
             do_backup_restore
