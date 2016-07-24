@@ -143,12 +143,12 @@ set_permissions() {
     chmod -R -v 755 /opt/PiPass/
 
     if [ -n "$webroot" ]; then
-        chmod -R -v 755 "$webroot"
+        chmod -R --changes 755 "$webroot"
     fi
 
     if [ -n "$webconfig" ]; then
-        chmod -R -v 755 "$webconfig"
-        chown -R -v www-data:www-data "$webconfig"
+        chmod -R --changes 755 "$webconfig"
+        chown -R --changes www-data:www-data "$webconfig"
     fi
 }
 
@@ -159,7 +159,7 @@ do_backup_create() {
     local webroot="$1"
 echo "$@"
 
-    tar -czvf "/root/$bkpfile" /opt/PiPass/ "$webroot" || return 1
+    tar -czf "/root/$bkpfile" /opt/PiPass/ "$webroot" || return 1
 
     # symlink the just created backup
     ln -sf "$bkpfile" /root/pipass_backup_latest.tar.gz
@@ -172,7 +172,8 @@ do_backup_restore() {
 
     local bkpfile="/root/pipass_backup_latest.tar.gz"
 
-    tar -xzvf "$bkpfile" --same-owner --directory / || return 1
+    echo "Extracting files from $bkpfile ..."
+    tar -xzf "$bkpfile" --same-owner --directory / || return 1
 }
 
 # exitcode > 1 indicated that a rollback is needed
