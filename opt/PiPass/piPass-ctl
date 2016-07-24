@@ -285,7 +285,7 @@ do_update() {
 }
 
 do_devupdate() {
-    do_update 'https://github.com/sheepluva/PiPass/archive/master.tar.gz'
+    do_update 'https://github.com/sheepluva/PiPass-SLE/archive/master.tar.gz'
 }
 
 exitcode=0
