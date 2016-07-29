@@ -111,7 +111,7 @@ do_pinetreset() {
 
 do_pishutdown() {
     do_stop
-    /sbin/shutdown -P now
+    /sbin/shutdown -hP now
     return $?
 }
 
